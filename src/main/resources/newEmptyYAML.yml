@@ -1,0 +1,379 @@
+openapi: 3.0.1
+info: 
+  title: Gestión de actividades
+  description: Servicio para proporcionar información acerca de las actividades disponibles en un periodo de tiempo específico. También provee la funcionalidad para crear, modificar y eliminar reservas de los clientes en actividades específicas.
+  version: 1.0.0
+  contact:
+    name: ITQ
+    email: micorreo@queretaro.tecnm.mx
+servers:
+- url: http://localhost:8080
+  description: Servidor local
+tags:
+- name: Reservations
+
+paths:
+  /reservation:
+    post:
+      tags:
+      - Reservations
+      summary: Crea una reserva de actividad.
+      description: Método para crear la reservación de una actividad para un usario registrado en el sistema.
+      operationId: createReservation
+      requestBody:
+        description: Contiene la información de la actividad y los datos de usuario que solicita la reserva.
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reservation'
+            examples:
+                PostReservationBCExample:
+                  $ref: '#/components/examples/PostReservation-001'
+                PostReservationPCExample:
+                  $ref: '#/components/examples/PostReservation-002'
+                PostReservationNewExample:
+                  $ref: '#/components/examples/PostReservation-003'
+      responses:
+        '201':
+          description: Reservación creada con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation' 
+        '400':
+          description: Error en los datos de entrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+        '500':
+          description: Error en el servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+    get:
+      tags:
+      - Reservations
+      summary: Consulta una o más reservaciones de actividades.
+      description: Método para consultar una o más reservaciones de actividades según los criterios dados como entrada.
+      operationId: getReservation
+      parameters:
+      - name: idRoom
+        in: query
+        description: Identificador del salón como criterio de búsqueda
+        required: false
+        schema:
+          type: string
+          example: 123
+      - name: idActivity
+        in: query
+        description: Identificador de la actividad como criterio de búsqueda
+        required: false
+        schema:
+          type: string
+          example: Yoga
+      responses:
+        '200':
+          description: Resultado de la consulta por uno o más criterios dados como entrada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+              examples:
+                GetReservationExample:
+                  $ref: '#/components/examples/GetReservationByCriteria-003'
+        '204':
+          description: La consulta se ejecutó, pero no se encontraron datos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+              examples:
+                Error204Example:
+                  $ref: '#/components/examples/Error204Example'              
+        '400':
+          description: Error en los datos de entrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+        '500':
+          description: Error en el servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+  /reservation/byClient:
+    get:
+      tags:
+      - Reservations
+      summary: Consulta una o más reservaciones de actividades.
+      description: Método para consultar una o más reservaciones de actividades para un usuario registrado en el sistema.
+      operationId: getReservationByClient
+      parameters:
+      - name: idRoom
+        in: query
+        description: Identificador del salón como criterio de búsqueda
+        required: false
+        schema:
+          type: string
+          example: 123
+      - name: idActivity
+        in: query
+        description: Identificador de la actividad como criterio de búsqueda
+        required: false
+        schema:
+          type: string
+          example: Yoga
+      responses:
+        '200':
+          description: Resultado de la consulta por uno o más criterios dados como entrada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+              examples:
+                GetReservationBCExample:
+                  $ref: '#/components/examples/GetReservation-001'
+                GetReservationPCExample:
+                  $ref: '#/components/examples/GetReservation-002'
+        '400':
+          description: Error en los datos de entrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+        '500':
+          description: Error en el servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseCode'
+  /reservation/{idReservation}:
+    put:
+      tags: 
+        - Reservations
+      summary: Actualización de reserva por Id
+      description: Actualiza una reserva a partir de su id.
+      operationId: updateReservation
+      parameters:
+      - name: idReservation
+        in: path
+        description: Indica el identificador único de la reservación
+        required: true
+        schema:
+          type: string
+          example: R-2024-09-05-001
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reservation'
+      responses:
+        '200':
+          description: Reservación actualizada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation' 
+    delete:     
+      tags: 
+        - Reservations
+      summary: Eliminación de reserva por Id
+      description: Elimina una reserva a partir de su id.
+      operationId: deleteReservation
+      parameters:
+      - name: idReservation
+        in: path
+        description: Indica el identificador único de la reservación
+        required: true
+        schema:
+          type: string
+          example: R-2024-09-05-001
+      responses:
+        '200':
+          description: Reservación eliminada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation' 
+
+components:
+  schemas:
+    Reservation:
+      description: Modela la información relacionada con la reserva hecha por un cliente para una actividad en específico. La reserva puede estar activa, cancelada o completada.
+      type: object
+      required:
+      - idClient
+      - status
+      - activity
+      - room
+      properties: 
+        idClient:
+          type: string
+          description: Identificador único del cliente que realiza la reserva. Puede ser un cliente básico (CB) o un cliente premium (CP).
+          example: CB-001
+        status:
+          type: string
+          description: Es el estatus actual de la reservación.
+          enum: [ACTIVA, CANCELADA, COMPLETADA]
+          example: ACTIVA
+        room:
+          type: string
+          description: Nombre del salón donde ocurrirá la actividad reservada.
+          example: Salón Tlahtoani 
+        activity:
+          $ref: '#/components/schemas/Activity'
+   
+    Activity:
+      description: Datos generales de la actividad.
+      type: object
+      required: 
+      - name
+      - schedule
+      properties:
+        name:
+          type: string
+          description: Nombre de la actividad
+        schedule:
+          $ref: '#/components/schemas/Schedule' 
+    
+    Schedule:
+      description: Lista de fechas y horas de ocurrencia de una actividad.
+      type: array
+      items:
+        $ref: '#/components/schemas/Ocurrence'
+          
+    Ocurrence:
+      description: Ocurrencia de actividad
+      type: object
+      required:
+      - dayOfWeek
+      - time
+      properties:
+        dayOfWeek: 
+          type: string
+          description: Día de la semana en que ocurre la actividad.
+          enum: [Lun, Mar, Mie, Jue, Vie]
+          example: Lun
+        time:
+          type: string
+          description: Hora en formato HH:mm en que ocurre la actividad.
+          example: 18:00
+    
+    ResponseCode:
+      description: Códigos de Respuesta.
+      type: object
+      required:
+        - reason
+        - message
+      properties:
+        reason: 
+          type: string
+          description: Descripción del motivo del error.
+          example: Conexión rechazada. No se pudo realizar la conexión con el servicio.
+        message: 
+          type: string
+          description: Descripción del evento detectado.
+          example: 'Connect to localhost:3000 [localhost/127.0.0.1] failed: Conexión rehusada (Connection refused)'
+  examples:
+    PostReservation-001:
+      summary: Ejemplo de request de reservaciones cliente básico.
+      value:
+        idClient: CB-001
+        status: ACTIVA
+        room: Cihuatl
+        activity:
+          name: Yoga
+          schedule:
+            - dayOfWeek: Lun
+              time: '13:30'
+          
+    PostReservation-002:
+      summary: Ejemplo de request de reservaciones cliente premium.
+      value:
+        idClient: CP-002
+        status: ACTIVA
+        room: Tlahtoani
+        activity:
+          name: Natación
+          schedule:
+            - dayOfWeek: Jue
+              time: '19:00'
+    
+    PostReservation-003:
+      summary: Ejemplo de request de reservaciones para una nueva actividad.
+      value:
+        idClient: CP-003
+        status: ACTIVA
+        room: Gym Principal
+        activity:
+          name: Pilates
+          schedule:
+            - dayOfWeek: Vie
+              time: '09:00'
+            - dayOfWeek: Dom
+              time: '10:00'
+    
+    GetReservation-001:
+      summary: Ejemplo de respuesta de consulta de reservaciones cliente básico.
+      value:
+        idClient: CB-001
+        status: ACTIVA
+        room: Cihuatl
+        activity:
+          name: Yoga
+          schedule:
+            - dayOfWeek: Lun
+              time: '13:30'
+          
+    GetReservation-002:
+      summary: Ejemplo de respuesta de consulta de reservaciones cliente premium.
+      value:
+        idClient: CP-002
+        status: ACTIVA
+        room: Tlahtoani
+        activity:
+          name: Natación
+          schedule:
+            - dayOfWeek: Jue
+              time: '19:00'
+    
+    GetReservationByCriteria-003:
+      summary: Ejemplo de respuesta de consulta de reservaciones por salón.
+      value:
+      - idClient: CP-002
+        status: ACTIVA
+        room: Tlahtoani
+        activity:
+          name: Natación
+          schedule:
+            - dayOfWeek: Jue
+              time: '19:00'
+      - idClient: CP-002
+        status: COMPLETADA
+        room: Tlahtoani
+        activity:
+          name: Natación
+          schedule:
+            - dayOfWeek: Mie
+              time: '19:00'
+      - idClient: CB-001
+        status: COMPLETADA
+        room: Tlahtoani
+        activity:
+          name: Natación
+          schedule:
+            - dayOfWeek: Mie
+              time: '19:00'
+            
+    Error204Example:
+      summary: Error de datos no encontrados.
+      value:
+        reason: No se encontraron datos para el criterio especificado. Verifique los datos de consulta.
+        message: 204 No Content
